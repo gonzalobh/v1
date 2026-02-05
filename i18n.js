@@ -43,6 +43,7 @@ const translations = {
       items: {
         one: 'Faites Devis, Factures et Reçus',
         two: 'Transformez Devis en Factures',
+        eight: 'Faites des factures récurrentes',
         three: 'Envoyez-les par email ou Whatsapp',
         four: 'Suivez les paiement des factures',
         five: 'Relancez les impayés automatiquement',
@@ -414,6 +415,7 @@ const translations = {
       items: {
         one: 'Create quotes, invoices, and receipts',
         two: 'Turn quotes into invoices',
+        eight: 'Create recurring invoices',
         three: 'Send them by email or WhatsApp',
         four: 'Track invoice payments',
         five: 'Automatically follow up on unpaid invoices',
