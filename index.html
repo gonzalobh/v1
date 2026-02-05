@@ -3498,14 +3498,33 @@ if (window.lottie) {
     const strength = 10;
     const maxDistance = 140;
     const maxOffset = 10;
+    const impulseFactor = 0.06;
+    const lerpFactor = 0.15;
+    const maxDeltaVelocity = 0.6;
+    const damping = 0.96;
+    const deadZoneRadius = 6;
     let mouseX = 0;
     let mouseY = 0;
     let hasMouse = false;
 
+    const facesData = faces.map((face) => ({
+      face,
+      offsetX: 0,
+      offsetY: 0,
+      velocityX: 0,
+      velocityY: 0
+    }));
+
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
     const resetFaces = () => {
-      faces.forEach((face) => {
-        face.style.setProperty('--repel-x', '0px');
-        face.style.setProperty('--repel-y', '0px');
+      facesData.forEach((data) => {
+        data.face.style.setProperty('--repel-x', '0px');
+        data.face.style.setProperty('--repel-y', '0px');
+        data.offsetX = 0;
+        data.offsetY = 0;
+        data.velocityX = 0;
+        data.velocityY = 0;
       });
     };
 
@@ -3514,25 +3533,38 @@ if (window.lottie) {
         return;
       }
 
-      faces.forEach((face) => {
+      facesData.forEach((data) => {
+        const { face } = data;
         const rect = face.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
         const dx = centerX - mouseX;
         const dy = centerY - mouseY;
         const distance = Math.hypot(dx, dy);
+        let targetVelocityX = 0;
+        let targetVelocityY = 0;
+        let scale = impulseFactor;
 
         if (distance > 0 && distance < maxDistance) {
           const falloff = Math.pow((maxDistance - distance) / maxDistance, 2);
           const force = strength * falloff;
-          const offsetX = Math.max(-maxOffset, Math.min(maxOffset, (dx / distance) * force));
-          const offsetY = Math.max(-maxOffset, Math.min(maxOffset, (dy / distance) * force));
-          face.style.setProperty('--repel-x', `${offsetX.toFixed(2)}px`);
-          face.style.setProperty('--repel-y', `${offsetY.toFixed(2)}px`);
-        } else {
-          face.style.setProperty('--repel-x', '0px');
-          face.style.setProperty('--repel-y', '0px');
+          if (distance < deadZoneRadius) {
+            scale *= 0.3;
+          }
+          targetVelocityX = (dx / distance) * force * scale;
+          targetVelocityY = (dy / distance) * force * scale;
         }
+
+        let deltaVX = (targetVelocityX - data.velocityX) * lerpFactor;
+        let deltaVY = (targetVelocityY - data.velocityY) * lerpFactor;
+        deltaVX = clamp(deltaVX, -maxDeltaVelocity, maxDeltaVelocity);
+        deltaVY = clamp(deltaVY, -maxDeltaVelocity, maxDeltaVelocity);
+        data.velocityX = (data.velocityX + deltaVX) * damping;
+        data.velocityY = (data.velocityY + deltaVY) * damping;
+        data.offsetX = clamp(data.offsetX + data.velocityX, -maxOffset, maxOffset);
+        data.offsetY = clamp(data.offsetY + data.velocityY, -maxOffset, maxOffset);
+        face.style.setProperty('--repel-x', `${data.offsetX.toFixed(2)}px`);
+        face.style.setProperty('--repel-y', `${data.offsetY.toFixed(2)}px`);
       });
     };
 
@@ -3552,6 +3584,13 @@ if (window.lottie) {
       hasMouse = false;
       resetFaces();
     });
+
+    const animate = () => {
+      updateFaces();
+      window.requestAnimationFrame(animate);
+    };
+
+    window.requestAnimationFrame(animate);
   })();
 </script>
 
