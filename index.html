@@ -2120,19 +2120,22 @@
   box-shadow: 0 10px 22px rgba(0,0,0,.18);
   pointer-events: none;
   will-change: transform;
+  --repel-x: 0px;
+  --repel-y: 0px;
   animation: float-face var(--float-duration) ease-in-out infinite;
   animation-delay: var(--float-delay);
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes float-face{
   0%{
-    transform: translate3d(calc(-1 * var(--float-x)), calc(-1 * var(--float-y)), 0) rotate(calc(-1 * var(--float-rot)));
+    transform: translate3d(calc(-1 * var(--float-x) + var(--repel-x)), calc(-1 * var(--float-y) + var(--repel-y)), 0) rotate(calc(-1 * var(--float-rot)));
   }
   50%{
-    transform: translate3d(var(--float-x), var(--float-y), 0) rotate(var(--float-rot));
+    transform: translate3d(calc(var(--float-x) + var(--repel-x)), calc(var(--float-y) + var(--repel-y)), 0) rotate(var(--float-rot));
   }
   100%{
-    transform: translate3d(calc(-1 * var(--float-x)), calc(-1 * var(--float-y)), 0) rotate(calc(-1 * var(--float-rot)));
+    transform: translate3d(calc(-1 * var(--float-x) + var(--repel-x)), calc(-1 * var(--float-y) + var(--repel-y)), 0) rotate(calc(-1 * var(--float-rot)));
   }
 }
 
@@ -3479,6 +3482,80 @@ if (window.lottie) {
       }
     });
   });
+</script>
+<script>
+  (() => {
+    const faces = Array.from(document.querySelectorAll('.floating-face'));
+    if (!faces.length) {
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (prefersReducedMotion.matches) {
+      return;
+    }
+
+    const strength = 28;
+    const maxDistance = 140;
+    let mouseX = 0;
+    let mouseY = 0;
+    let hasMouse = false;
+    let rafId = 0;
+
+    const resetFaces = () => {
+      faces.forEach((face) => {
+        face.style.setProperty('--repel-x', '0px');
+        face.style.setProperty('--repel-y', '0px');
+      });
+    };
+
+    const updateFaces = () => {
+      rafId = 0;
+      if (!hasMouse) {
+        return;
+      }
+
+      faces.forEach((face) => {
+        const rect = face.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const dx = centerX - mouseX;
+        const dy = centerY - mouseY;
+        const distance = Math.hypot(dx, dy);
+
+        if (distance > 0 && distance < maxDistance) {
+          const falloff = 1 - distance / maxDistance;
+          const force = strength * falloff;
+          const offsetX = (dx / distance) * force;
+          const offsetY = (dy / distance) * force;
+          face.style.setProperty('--repel-x', `${offsetX.toFixed(2)}px`);
+          face.style.setProperty('--repel-y', `${offsetY.toFixed(2)}px`);
+        } else {
+          face.style.setProperty('--repel-x', '0px');
+          face.style.setProperty('--repel-y', '0px');
+        }
+      });
+    };
+
+    const handleMove = (event) => {
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+      hasMouse = true;
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(updateFaces);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMove, { passive: true });
+    window.addEventListener('mouseleave', () => {
+      hasMouse = false;
+      resetFaces();
+    });
+    window.addEventListener('blur', () => {
+      hasMouse = false;
+      resetFaces();
+    });
+  })();
 </script>
 
 <footer class="site-footer">
