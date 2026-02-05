@@ -3495,63 +3495,127 @@ if (window.lottie) {
       return;
     }
 
-    const strength = 10;
-    const maxDistance = 140;
-    const maxOffset = 10;
+    const maxOffset = 12;
+    const friction = 0.92;
+    const transfer = 0.4;
+    const impulseStrength = 0.15;
+    const facesState = faces.map((face) => ({
+      el: face,
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      radius: face.getBoundingClientRect().width / 2
+    }));
+
     let mouseX = 0;
     let mouseY = 0;
+    let mouseDX = 0;
+    let mouseDY = 0;
     let hasMouse = false;
 
-    const resetFaces = () => {
-      faces.forEach((face) => {
-        face.style.setProperty('--repel-x', '0px');
-        face.style.setProperty('--repel-y', '0px');
-      });
-    };
+    const clampOffset = (value) => Math.max(-maxOffset, Math.min(maxOffset, value));
 
-    const updateFaces = () => {
-      if (!hasMouse) {
-        return;
-      }
-
-      faces.forEach((face) => {
-        const rect = face.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const dx = centerX - mouseX;
-        const dy = centerY - mouseY;
-        const distance = Math.hypot(dx, dy);
-
-        if (distance > 0 && distance < maxDistance) {
-          const falloff = Math.pow((maxDistance - distance) / maxDistance, 2);
-          const force = strength * falloff;
-          const offsetX = Math.max(-maxOffset, Math.min(maxOffset, (dx / distance) * force));
-          const offsetY = Math.max(-maxOffset, Math.min(maxOffset, (dy / distance) * force));
-          face.style.setProperty('--repel-x', `${offsetX.toFixed(2)}px`);
-          face.style.setProperty('--repel-y', `${offsetY.toFixed(2)}px`);
-        } else {
-          face.style.setProperty('--repel-x', '0px');
-          face.style.setProperty('--repel-y', '0px');
-        }
+    const applyOffsets = () => {
+      facesState.forEach((face) => {
+        const clampedX = clampOffset(face.x);
+        const clampedY = clampOffset(face.y);
+        face.el.style.setProperty('--repel-x', `${clampedX.toFixed(2)}px`);
+        face.el.style.setProperty('--repel-y', `${clampedY.toFixed(2)}px`);
       });
     };
 
     const handleMove = (event) => {
+      if (!hasMouse) {
+        mouseX = event.clientX;
+        mouseY = event.clientY;
+      }
+      mouseDX = event.clientX - mouseX;
+      mouseDY = event.clientY - mouseY;
       mouseX = event.clientX;
       mouseY = event.clientY;
       hasMouse = true;
-      updateFaces();
+    };
+
+    const handleReset = () => {
+      hasMouse = false;
+      mouseDX = 0;
+      mouseDY = 0;
+    };
+
+    const resolveCollisions = (rects) => {
+      for (let i = 0; i < facesState.length; i += 1) {
+        for (let j = i + 1; j < facesState.length; j += 1) {
+          const faceA = facesState[i];
+          const faceB = facesState[j];
+          const rectA = rects[i];
+          const rectB = rects[j];
+          const centerAX = rectA.left + rectA.width / 2;
+          const centerAY = rectA.top + rectA.height / 2;
+          const centerBX = rectB.left + rectB.width / 2;
+          const centerBY = rectB.top + rectB.height / 2;
+          const dx = centerBX - centerAX;
+          const dy = centerBY - centerAY;
+          const distance = Math.hypot(dx, dy);
+          const minDistance = faceA.radius + faceB.radius;
+
+          if (distance > 0 && distance < minDistance) {
+            const nx = dx / distance;
+            const ny = dy / distance;
+            const relVx = faceB.vx - faceA.vx;
+            const relVy = faceB.vy - faceA.vy;
+            const relSpeed = relVx * nx + relVy * ny;
+            const impulse = relSpeed * transfer;
+
+            faceA.vx += impulse * nx;
+            faceA.vy += impulse * ny;
+            faceB.vx -= impulse * nx;
+            faceB.vy -= impulse * ny;
+          }
+        }
+      }
+    };
+
+    const animate = () => {
+      const rects = facesState.map((face) => face.el.getBoundingClientRect());
+
+      facesState.forEach((face, index) => {
+        if (hasMouse) {
+          const rect = rects[index];
+          if (
+            mouseX >= rect.left &&
+            mouseX <= rect.right &&
+            mouseY >= rect.top &&
+            mouseY <= rect.bottom
+          ) {
+            face.vx += mouseDX * impulseStrength;
+            face.vy += mouseDY * impulseStrength;
+          }
+        }
+      });
+
+      resolveCollisions(rects);
+
+      facesState.forEach((face) => {
+        face.vx *= friction;
+        face.vy *= friction;
+        face.x = clampOffset(face.x + face.vx);
+        face.y = clampOffset(face.y + face.vy);
+      });
+
+      applyOffsets();
+      mouseDX *= 0.6;
+      mouseDY *= 0.6;
+      requestAnimationFrame(animate);
     };
 
     window.addEventListener('mousemove', handleMove, { passive: true });
-    window.addEventListener('mouseleave', () => {
-      hasMouse = false;
-      resetFaces();
-    });
-    window.addEventListener('blur', () => {
-      hasMouse = false;
-      resetFaces();
-    });
+    window.addEventListener('mouseleave', handleReset);
+    window.addEventListener('blur', handleReset);
+    window.addEventListener('mouseout', handleReset);
+
+    applyOffsets();
+    requestAnimationFrame(animate);
   })();
 </script>
 
