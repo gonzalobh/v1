@@ -2124,7 +2124,7 @@
   --repel-y: 0px;
   animation: float-face var(--float-duration) ease-in-out infinite;
   animation-delay: var(--float-delay);
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes float-face{
@@ -3495,12 +3495,12 @@ if (window.lottie) {
       return;
     }
 
-    const strength = 28;
+    const strength = 10;
     const maxDistance = 140;
+    const maxOffset = 10;
     let mouseX = 0;
     let mouseY = 0;
     let hasMouse = false;
-    let rafId = 0;
 
     const resetFaces = () => {
       faces.forEach((face) => {
@@ -3510,7 +3510,6 @@ if (window.lottie) {
     };
 
     const updateFaces = () => {
-      rafId = 0;
       if (!hasMouse) {
         return;
       }
@@ -3524,10 +3523,10 @@ if (window.lottie) {
         const distance = Math.hypot(dx, dy);
 
         if (distance > 0 && distance < maxDistance) {
-          const falloff = 1 - distance / maxDistance;
+          const falloff = Math.pow((maxDistance - distance) / maxDistance, 2);
           const force = strength * falloff;
-          const offsetX = (dx / distance) * force;
-          const offsetY = (dy / distance) * force;
+          const offsetX = Math.max(-maxOffset, Math.min(maxOffset, (dx / distance) * force));
+          const offsetY = Math.max(-maxOffset, Math.min(maxOffset, (dy / distance) * force));
           face.style.setProperty('--repel-x', `${offsetX.toFixed(2)}px`);
           face.style.setProperty('--repel-y', `${offsetY.toFixed(2)}px`);
         } else {
@@ -3541,9 +3540,7 @@ if (window.lottie) {
       mouseX = event.clientX;
       mouseY = event.clientY;
       hasMouse = true;
-      if (!rafId) {
-        rafId = window.requestAnimationFrame(updateFaces);
-      }
+      updateFaces();
     };
 
     window.addEventListener('mousemove', handleMove, { passive: true });
