@@ -153,7 +153,7 @@ const translations = {
             annual: '(99€ / an)'
           },
           features: [
-            '1 utilisateur',
+            '3 utilisateurs',
             '3 devises',
             'Clients illimités',
             'Gestion et suivi des paiements',
@@ -172,7 +172,7 @@ const translations = {
             annual: '(199€ / an)'
           },
           features: [
-            '3 utilisateurs',
+            '10 utilisateurs',
             'Devises illimitées',
             'Factures récurrentes',
             'Modèles illimités',
@@ -285,7 +285,7 @@ const translations = {
       },
       bottom: {
         rights: '© Facture.mu - Tous droits réservés. @2026',
-        legal: 'Mentions légales - CGV - Cookies'
+        legal: ''
       }
     },
     pricing_page: {
@@ -313,7 +313,7 @@ const translations = {
           cta: 'Essayer',
           heading: 'TOUTES LES FONCTIONNALITÉS GRATUITES +',
           features: [
-            '1 utilisateur',
+            '3 utilisateurs',
             '3 devises',
             'Clients illimités',
             'Gestion et suivi des paiements',
@@ -325,7 +325,7 @@ const translations = {
           cta: 'Essayer',
           heading: 'TOUTES LES FONCTIONNALITÉS PRO+',
           features: [
-            '3 utilisateurs',
+            '10 utilisateurs',
             'Devises illimitées',
             'Factures récurrentes',
             'Gestion de stock',
@@ -525,7 +525,7 @@ const translations = {
             annual: '(€99 / year)'
           },
           features: [
-            '1 user',
+            '3 users',
             '3 currencies',
             'Unlimited clients',
             'Payment management and tracking',
@@ -544,7 +544,7 @@ const translations = {
             annual: '(€199 / year)'
           },
           features: [
-            '3 users',
+            '10 users',
             'Unlimited currencies',
             'Recurring invoices',
             'Unlimited templates',
@@ -657,7 +657,7 @@ const translations = {
       },
       bottom: {
         rights: '© Facture.mu - All rights reserved. @2026',
-        legal: 'Legal notice - Terms - Cookies'
+        legal: ''
       }
     },
     pricing_page: {
@@ -685,7 +685,7 @@ const translations = {
           cta: 'Try it',
           heading: 'ALL FREE FEATURES +',
           features: [
-            '1 user',
+            '3 users',
             '3 currencies',
             'Unlimited clients',
             'Payment management and tracking',
@@ -697,7 +697,7 @@ const translations = {
           cta: 'Try it',
           heading: 'ALL PRO FEATURES+',
           features: [
-            '3 users',
+            '10 users',
             'Unlimited currencies',
             'Recurring invoices',
             'Stock management',
